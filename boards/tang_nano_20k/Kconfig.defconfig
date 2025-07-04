@@ -1,0 +1,13 @@
+# Copyright (c) 2025 Ditso Labs <https://ditso-labs.github.io>
+# SPDX-License-Identifier: Apache-2.0
+
+if BOARD_TANGNANO20K
+
+if NETWORKING
+
+config NET_L2_ETHERNET
+	default y
+
+endif # NETWORKING
+
+endif # BOARD_TANGNANO20K

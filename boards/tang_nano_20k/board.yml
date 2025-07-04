@@ -1,0 +1,6 @@
+board:
+  name: tang_nano_20k
+  full_name: Sipeed Tang Nano 20K 
+  vendor: ditsolabs
+  socs:
+  - name: litex_vexriscv

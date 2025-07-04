@@ -1,0 +1,23 @@
+# Copyright (c) 2024 Ditso Labs
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+identifier: tang_nano_20k
+name: Tang Nano 20K LiteX SoC with VexRiscV
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 8388608
+supported:
+  - gpio
+  - uart
+  - spi
+  - i2c
+  - watchdog
+testing:
+  ignore_tags:
+    - bluetooth
+    - xip
+vendor: Ditso Labs
