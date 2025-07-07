@@ -1,11 +1,18 @@
 
+/*
+ * Copyright (c) 2024 Ditso Labs
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /dts-v1/;
 
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
 / {
-        compatible = "litex,sipeed_tang_nano_20k", "litex,soc";
-        model = "sipeed_tang_nano_20k";
+        compatible = "litex,tang_nano_20k";
+        model = "Tang Nano 20K LiteX SoC with VexRiscV";
         #address-cells = <1>;
-        #size-cells    = <1>;
+        #size-cells = <1>;
 
 
         chosen {
