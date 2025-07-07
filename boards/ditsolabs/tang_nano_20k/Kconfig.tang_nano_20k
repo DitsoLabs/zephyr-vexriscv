@@ -5,4 +5,4 @@
 #
 
 config BOARD_TANG_NANO_20K
-	select SOC_RISCV_GENERIC
+	select SOC_LITEX_VEXRISCV
