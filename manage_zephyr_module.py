@@ -168,13 +168,13 @@ class InstallBoards(WestCommand):
         if args.zephyr:
             zephyr_root = Path(args.zephyr).resolve()
         else:
-            # Detectar automáticamente usando west list zephyr
-            result = run_command("west list zephyr")
+            # Usar west topdir para obtener la raíz del workspace
+            result = run_command("west topdir")
             if result and result.returncode == 0:
-                zephyr_path = result.stdout.strip().split()[-1]
-                zephyr_root = Path(zephyr_path).resolve()
+                result = result + "zephyr"
+                zephyr_root = Path(result.stdout.strip()).resolve()
             else:
-                print("No se pudo detectar la ruta de Zephyr. Usa --zephyr <ruta>")
+                print("No se pudo detectar la raíz del workspace Zephyr. Usa --zephyr <ruta>")
                 return
         print(f"Copiando boards, dts y soc desde {src_root} a {zephyr_root}")
         for subdir in ["boards", "dts", "soc"]:
