@@ -3,4 +3,4 @@ board:
   full_name: Sipeed Tang Nano 20K 
   vendor: ditsolabs
   socs:
-  - name: riscv-generic
+  - name: litex_vexriscv
