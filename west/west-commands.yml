@@ -1,5 +1,0 @@
-commands:
-  - name: install-boards
-    class: InstallBoards
-    help: "Instala/copia archivos de boards/dts/soc en el módulo"
-    factory: manage_zephyr_module:InstallBoards
