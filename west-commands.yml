@@ -2,5 +2,5 @@ west-commands:
   - file: manage_zephyr_module.py
     commands:
       - name: install-boards
-        class: Tools
+        class: InstallBoards
         help: Instala/copia archivos de boards/dts/soc en el módulo
