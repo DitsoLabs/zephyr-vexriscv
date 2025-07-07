@@ -145,7 +145,7 @@ class InstallBoards(WestCommand):
     def __init__(self):
         super().__init__(
             'install-boards',
-            'Copy boards/dts/soc from the module to the main Zephyr tree',
+            'Copy boards/dts from the module to the main Zephyr tree',
             '''
             west install-boards [--zephyr <zephyr_path>]
             By default, the Zephyr workspace root is detected automatically.
@@ -170,8 +170,8 @@ class InstallBoards(WestCommand):
             else:
                 print("Could not detect the Zephyr workspace root. Use --zephyr <path>")
                 return
-        print(f"Copying boards, dts and soc from {src_root} to {zephyr_root}")
-        for subdir in ["boards", "dts", "soc"]:
+        print(f"Copying boards and dts from {src_root} to {zephyr_root}")
+        for subdir in ["boards", "dts"]:
             src = src_root / subdir
             dst = zephyr_root / subdir
             if src.exists():

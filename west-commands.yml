@@ -3,4 +3,4 @@ west-commands:
     commands:
       - name: install-boards
         class: InstallBoards
-        help: Instala/copia archivos de boards/dts/soc en el módulo
+        help: Instala/copia archivos de boards/dts en el módulo

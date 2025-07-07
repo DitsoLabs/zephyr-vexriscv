@@ -5,7 +5,7 @@
 #
 
 # Basic system configuration
-CONFIG_SOC_LITEX_VEXRISCV=y
+CONFIG_SOC_RISCV_GENERIC=y
 
 # Console and UART
 CONFIG_CONSOLE=y

@@ -3,4 +3,3 @@ build:
   settings:
     board_root: boards
     dts_root: dts
-    soc_root: soc
