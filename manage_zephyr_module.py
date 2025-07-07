@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script para gestionar módulos Zephyr con West
-Automatiza la adición y actualización de módulos personalizados
+Script to manage Zephyr modules with West.
+Automates the addition and update of custom modules.
 """
 
 import os
@@ -11,30 +11,30 @@ import yaml
 import argparse
 from pathlib import Path
 
-# Soporte para comando west
+# West command support
 try:
     from west.commands import WestCommand
 except ImportError:
     WestCommand = object
 
 def run_command(cmd, check=True, capture_output=True):
-    """Ejecuta un comando y retorna el resultado"""
+    """Execute a command and return the result"""
     try:
         result = subprocess.run(cmd, shell=True, check=check, 
                               capture_output=capture_output, text=True)
         return result
     except subprocess.CalledProcessError as e:
-        print(f"Error ejecutando comando: {cmd}")
+        print(f"Error running command: {cmd}")
         print(f"Error: {e}")
         return None
 
 def check_west_workspace():
-    """Verifica si estamos en un workspace de West"""
+    """Check if we're in a West workspace"""
     result = run_command("west list", check=False)
     return result is not None and result.returncode == 0
 
 def get_zephyr_base():
-    """Obtiene la ruta base de Zephyr"""
+    """Get the base path of Zephyr"""
     result = run_command("west list zephyr")
     if result and result.returncode == 0:
         lines = result.stdout.strip().split('\n')
@@ -46,7 +46,7 @@ def get_zephyr_base():
     return None
 
 def check_module_in_manifest(module_name, zephyr_path):
-    """Verifica si el módulo ya está en el manifest"""
+    """Check if the module is already in the manifest"""
     manifest_path = zephyr_path / "west.yml"
     if not manifest_path.exists():
         return False
@@ -61,14 +61,13 @@ def check_module_in_manifest(module_name, zephyr_path):
                 return True
         return False
     except Exception as e:
-        print(f"Error leyendo manifest: {e}")
+        print(f"Error reading manifest: {e}")
         return False
 
 def add_module_to_manifest(module_name, module_path, zephyr_path, url=None):
-    """Agrega un módulo al manifest de Zephyr"""
+    """Add a module to Zephyr's manifest"""
     manifest_path = zephyr_path / "west.yml"
     
-    # Crear entrada del módulo
     module_entry = {
         'name': module_name,
         'path': f'zephyr/modules/zephyr/{module_name}',
@@ -80,20 +79,19 @@ def add_module_to_manifest(module_name, module_path, zephyr_path, url=None):
     else:
         module_entry['url'] = f'file://{module_path.absolute()}'
     
-    print(f"Agregando módulo {module_name} al manifest...")
+    print(f"Adding module {module_name} to manifest...")
     print(f"  Path: {module_entry['path']}")
     print(f"  URL: {module_entry['url']}")
     
-    # Aquí podrías modificar el west.yml programáticamente
-    # Por seguridad, solo mostramos lo que se agregaría
-    print("\nAgrega esta entrada al west.yml de Zephyr:")
+    # For safety, we only show what should be added
+    print("\nAdd this entry to Zephyr's west.yml:")
     print(f"    - name: {module_name}")
     print(f"      path: {module_entry['path']}")
     print(f"      revision: {module_entry['revision']}")
     print(f"      url: {module_entry['url']}")
 
 def list_available_boards(module_path):
-    """Lista los boards disponibles en el módulo"""
+    """List available boards in the module"""
     boards_path = module_path / "boards"
     if not boards_path.exists():
         return []
@@ -123,24 +121,22 @@ def list_available_boards(module_path):
     return boards
 
 def test_board_build(board_name, sample_app="hello_world"):
-    """Prueba si el board se puede compilar"""
-    print(f"\nProbando compilación con board {board_name}...")
+    """Test if a board can be built"""
+    print(f"\nTesting build for board {board_name}...")
     
-    # Crear directorio temporal para la prueba
     test_dir = Path("/tmp/zephyr_board_test")
     test_dir.mkdir(exist_ok=True)
     
     os.chdir(test_dir)
     
-    # Intentar compilar un sample
     cmd = f"west build -p auto -b {board_name} $ZEPHYR_BASE/samples/{sample_app}"
     result = run_command(cmd, check=False)
     
     if result and result.returncode == 0:
-        print(f"✅ Board {board_name} compila correctamente")
+        print(f"✅ Board {board_name} built successfully")
         return True
     else:
-        print(f"❌ Error compilando board {board_name}")
+        print(f"❌ Error building board {board_name}")
         if result:
             print(f"Output: {result.stderr}")
         return False
@@ -149,17 +145,17 @@ class InstallBoards(WestCommand):
     def __init__(self):
         super().__init__(
             'install-boards',
-            'Copia boards/dts/soc desde el módulo a Zephyr (árbol principal)',
+            'Copy boards/dts/soc from the module to the main Zephyr tree',
             '''
-            west install-boards [--zephyr <ruta_zephyr>]
-            Por defecto detecta la ruta de Zephyr automáticamente.
+            west install-boards [--zephyr <zephyr_path>]
+            By default, the Zephyr workspace root is detected automatically.
             '''
         )
 
     def do_add_parser(self, parser_adder):
         parser = self._parser = parser_adder.add_parser(
             self.name, help=self.help, description=self.description)
-        parser.add_argument('--zephyr', required=False, help='Ruta al árbol Zephyr (opcional)')
+        parser.add_argument('--zephyr', required=False, help='Path to the Zephyr tree (optional)')
         return parser
 
     def do_run(self, args, unknown_args):
@@ -168,15 +164,13 @@ class InstallBoards(WestCommand):
         if args.zephyr:
             zephyr_root = Path(args.zephyr).resolve()
         else:
-            # Usar west topdir para obtener la raíz del workspace
             result = run_command("west topdir")
             if result and result.returncode == 0:
-                result = result.stdout.strip() + "/zephyr"
-                zephyr_root = Path(result).resolve()
+                zephyr_root = Path(result.stdout.strip()).resolve()
             else:
-                print("No se pudo detectar la raíz del workspace Zephyr. Usa --zephyr <ruta>")
+                print("Could not detect the Zephyr workspace root. Use --zephyr <path>")
                 return
-        print(f"Copiando boards, dts y soc desde {src_root} a {zephyr_root}")
+        print(f"Copying boards, dts and soc from {src_root} to {zephyr_root}")
         for subdir in ["boards", "dts", "soc"]:
             src = src_root / subdir
             dst = zephyr_root / subdir
@@ -189,92 +183,85 @@ class InstallBoards(WestCommand):
                         shutil.copytree(item, dest_item, dirs_exist_ok=True)
                     else:
                         shutil.copy2(item, dest_item)
-                print(f"✅ Copiado {subdir} a {dst}")
+                print(f"✅ Copied {subdir} to {dst}")
             else:
-                print(f"⚠️  No existe {src}, se omite")
+                print(f"⚠️  {src} does not exist, skipping")
 
 def main():
-    parser = argparse.ArgumentParser(description="Gestionar módulos Zephyr con West")
+    parser = argparse.ArgumentParser(description="Manage Zephyr modules with West")
     parser.add_argument("--module-path", "-p", type=Path, default=Path.cwd(),
-                       help="Ruta al módulo (default: directorio actual)")
+                       help="Path to the module (default: current directory)")
     parser.add_argument("--module-name", "-n", default="zephyr-vexriscv",
-                       help="Nombre del módulo")
+                       help="Module name")
     parser.add_argument("--check", "-c", action="store_true",
-                       help="Solo verificar el estado actual")
+                       help="Only check current status")
     parser.add_argument("--test-build", "-t", action="store_true",
-                       help="Probar compilación de los boards")
-    parser.add_argument("--url", "-u", help="URL del repositorio del módulo")
+                       help="Test board builds")
+    parser.add_argument("--url", "-u", help="Module repository URL")
     
     args = parser.parse_args()
     
-    print("🔧 Gestor de módulos Zephyr")
+    print("🔧 Zephyr Module Manager")
     print("=" * 40)
     
-    # Verificar workspace de West
     if not check_west_workspace():
-        print("❌ No se detectó un workspace de West válido")
-        print("Ejecuta este script desde un workspace de West inicializado")
+        print("❌ No valid West workspace detected")
+        print("Run this script from a properly initialized West workspace")
         sys.exit(1)
     
-    print("✅ Workspace de West detectado")
+    print("✅ West workspace detected")
     
-    # Obtener ruta de Zephyr
     zephyr_path = get_zephyr_base()
     if not zephyr_path:
-        print("❌ No se pudo encontrar la ruta de Zephyr")
+        print("❌ Could not find Zephyr base path")
         sys.exit(1)
     
-    print(f"✅ Zephyr encontrado en: {zephyr_path}")
+    print(f"✅ Zephyr found at: {zephyr_path}")
     
-    # Verificar módulo
     module_path = args.module_path.resolve()
     module_yml = module_path / "module.yml"
     
     if not module_yml.exists():
-        print(f"❌ No se encontró module.yml en {module_path}")
+        print(f"❌ module.yml not found in {module_path}")
         sys.exit(1)
     
-    print(f"✅ Módulo encontrado en: {module_path}")
+    print(f"✅ Module found at: {module_path}")
     
-    # Leer información del módulo
     try:
         with open(module_yml, 'r') as f:
             module_info = yaml.safe_load(f)
-        print(f"✅ Módulo: {module_info.get('name', 'sin nombre')}")
+        print(f"✅ Module: {module_info.get('name', 'unnamed')}")
     except Exception as e:
-        print(f"❌ Error leyendo module.yml: {e}")
+        print(f"❌ Error reading module.yml: {e}")
         sys.exit(1)
     
-    # Verificar si ya está en el manifest
     is_in_manifest = check_module_in_manifest(args.module_name, zephyr_path)
     if is_in_manifest:
-        print(f"✅ Módulo {args.module_name} ya está en el manifest")
+        print(f"✅ Module {args.module_name} is already in the manifest")
     else:
-        print(f"⚠️  Módulo {args.module_name} NO está en el manifest")
+        print(f"⚠️  Module {args.module_name} is NOT in the manifest")
         if not args.check:
             add_module_to_manifest(args.module_name, module_path, zephyr_path, args.url)
     
-    # Listar boards disponibles
     boards = list_available_boards(module_path)
     if boards:
-        print(f"\n📋 Boards disponibles ({len(boards)}):")
+        print(f"\n📋 Available boards ({len(boards)}):")
         for board in boards:
             print(f"  - {board['name']} (vendor: {board['vendor']})")
     else:
-        print("\n⚠️  No se encontraron boards en el módulo")
+        print("\n⚠️  No boards found in module")
     
-    # Probar compilación si se solicita
     if args.test_build and boards:
-        print("\n🔨 Probando compilación de boards...")
-        for board in boards[:2]:  # Solo probar los primeros 2
+        print("\n🔨 Testing board builds...")
+        for board in boards[:2]:  # Only test first 2
             test_board_build(board['name'])
     
-    print("\n✅ Verificación completada")
+    print("\n✅ Verification completed")
     
     if is_in_manifest:
-        print(f"\n🎉 Tu board está listo para usar:")
+        print(f"\n🎉 Your board is ready to use:")
         print(f"   west build -b tang_nano_20k")
-        print(f"   (No necesitas -DBOARD_ROOT)")
+        print(f"   (No need to use -DBOARD_ROOT)")
 
 if __name__ == "__main__":
     main()
