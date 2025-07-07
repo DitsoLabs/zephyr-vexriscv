@@ -166,6 +166,7 @@ class InstallBoards(WestCommand):
         else:
             result = run_command("west topdir")
             if result and result.returncode == 0:
+                zephyr_root = Path(result.stdout.strip()).resolve() / "zephyr"
                 zephyr_root = Path(result.stdout.strip()).resolve()
             else:
                 print("Could not detect the Zephyr workspace root. Use --zephyr <path>")
