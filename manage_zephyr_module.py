@@ -171,8 +171,8 @@ class InstallBoards(WestCommand):
             # Usar west topdir para obtener la raíz del workspace
             result = run_command("west topdir")
             if result and result.returncode == 0:
-                result = result + "zephyr"
-                zephyr_root = Path(result.stdout.strip()).resolve()
+                result = result.stdout.strip() + "/zephyr"
+                zephyr_root = Path(result).resolve()
             else:
                 print("No se pudo detectar la raíz del workspace Zephyr. Usa --zephyr <ruta>")
                 return
