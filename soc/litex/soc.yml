@@ -1,2 +1,2 @@
 soc:
-  - name: litex_vexriscv
+  name: litex_vexriscv
