@@ -1,4 +1,5 @@
 # zephyr-vexriscv
+[![Pylint](https://github.com/DitsoLabs/zephyr-vexriscv/actions/workflows/pylint.yml/badge.svg)](https://github.com/DitsoLabs/zephyr-vexriscv/actions/workflows/pylint.yml)
 
 **Zephyr RTOS on VexRiscv for Tang Nano 20K (and possibly 9K in the future)**
 
