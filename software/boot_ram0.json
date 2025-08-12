@@ -1,0 +1,6 @@
+{
+	"Image":			"0x40000000",
+	"rv32.dtb":			"0x40780000",
+	"opensbi.bin.tangnano20k":	"0x407c0000",
+	"rootfs.cpio" : "0x41000000"
+}

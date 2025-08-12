@@ -1,0 +1,31 @@
+# Ignore cache files
+*.cache
+*.tmp
+*.log
+
+# Ignore build artifacts
+/build/
+/dist/
+/node_modules/
+/coverage/
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+# Ignore environment files
+.env
+.env.local
+.env.production
+.env.development
+# Ignore test files
+/tests/
+*.spec.js
+*.test.js
+# Ignore pycache files
+__pycache__/
+*.pyc
+*.pyo
