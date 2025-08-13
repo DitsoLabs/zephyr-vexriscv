@@ -14,10 +14,11 @@ import os
 import re
 import argparse
 import shutil
+import sys
 from litex.soc.integration.builder import Builder
 from litex.soc.cores.cpu.vexriscv_smp import VexRiscvSMP
 from litepcie.software import generate_litepcie_software
-from misc.boards import Board
+from misc.boards import *
 from misc.soc_linux import SoCLinux
 
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +30,7 @@ log = logging.getLogger(__name__)
 
 def camel_to_snake(name):
     """Convert CamelCase to snake_case."""
-    name = re.sub(r'(?<=[a-z])(?=[A-Z])', '_', name)
+    name = re.sub(r'(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Za-z])(?=\d)|(?<=\d)(?=[A-Za-z])', '_', name)
     return name.lower()
 
 def get_board():
@@ -177,7 +178,11 @@ def main():
     VexRiscvSMP.args_fill(parser)
     args = parser.parse_args()
     board_name = "sipeed_tang_nano_20k"
-    board = board_classes[board_name]()
+    board_key = camel_to_snake(board_name)
+    if board_key not in board_classes:
+        print(f"ERROR: Board '{board_key}' not found. Available boards: {list(board_classes.keys())}")
+        sys.exit(1)
+    board = board_classes[board_key]()
     soc = setup_soc(board, args)
     add_optional_interfaces(soc, board, args)
     build_and_generate(soc, board_name, args)

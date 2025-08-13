@@ -8,7 +8,6 @@ Automatically installs a Zephyr board from the local repository.
 """
 
 import sys
-import os
 import shutil
 import argparse
 import subprocess
@@ -16,15 +15,18 @@ from pathlib import Path
 
 
 def detect_zephyr_base() -> Path:
+    """Detect the Zephyr base directory using 'west' or manual search."""
     # 1. Try using 'west list zephyr'
     try:
-        result = subprocess.run("west list zephyr", shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            "west topdir", shell=True, capture_output=True, text=True, check=False
+        )
         if result.returncode == 0:
             zephyr_path = Path(result.stdout.strip().split()[-1]).resolve()
             if zephyr_path.exists():
                 print(f"✅ Zephyr detected via 'west': {zephyr_path}")
                 return zephyr_path
-    except Exception:
+    except subprocess.SubprocessError:
         pass
 
     print("⚠️ 'west list zephyr' failed. Searching for Zephyr manually...")
@@ -37,7 +39,7 @@ def detect_zephyr_base() -> Path:
             try:
                 if (path / "Kconfig").exists() and (path / "boards").exists():
                     candidates.append(path.resolve())
-            except Exception:
+            except (OSError, PermissionError):
                 continue
 
     if not candidates:
@@ -49,18 +51,19 @@ def detect_zephyr_base() -> Path:
         return candidates[0]
 
     print("⚠️ Multiple Zephyr installations found:")
-    for i, c in enumerate(candidates):
-        print(f"  [{i+1}] {c}")
+    for i, candidate in enumerate(candidates):
+        print(f"  [{i+1}] {candidate}")
 
     try:
         index = int(input("Select an option (1, 2, ...): ").strip()) - 1
         return candidates[index]
-    except Exception:
+    except (ValueError, IndexError):
         print("❌ Invalid selection.")
         sys.exit(1)
 
 
 def find_all_boards(module_path: Path):
+    """Find all boards in the boards/ directory."""
     boards_path = module_path / "boards"
     boards = []
     for vendor_dir in boards_path.glob("*"):
@@ -75,11 +78,13 @@ def find_all_boards(module_path: Path):
 
 
 def find_dts_file(module_path: Path, board_name: str):
+    """Find the DTS file for a given board name."""
     dts_path = module_path / "dts"
     return next(dts_path.rglob(f"{board_name}.dtsi"), None)
 
 
 def copy_board(board: dict, zephyr_path: Path):
+    """Copy the board directory to the Zephyr base."""
     dst = zephyr_path / "boards" / board["vendor"] / board["name"]
     print(f"📁 Copying board: {board['path']} → {dst}")
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -88,6 +93,7 @@ def copy_board(board: dict, zephyr_path: Path):
 
 
 def copy_dts(dts_file: Path, zephyr_path: Path):
+    """Copy the DTS file to the Zephyr base."""
     relative_parts = dts_file.parts[-3:]  # e.g., dts/riscv/board.dtsi
     dst = zephyr_path / Path(*relative_parts)
     print(f"📁 Copying DTS: {dts_file} → {dst}")
@@ -97,11 +103,16 @@ def copy_dts(dts_file: Path, zephyr_path: Path):
 
 
 def main():
+    """Main entry point for board installation."""
     parser = argparse.ArgumentParser(description="Install a Zephyr board from your repo")
-    parser.add_argument("-p", "--module-path", type=Path, default=Path(__file__).resolve().parent,
-                        help="Path to the Zephyr module (default: script location)")
-    parser.add_argument("-z", "--zephyr-path", type=Path,
-                        help="Manual path to Zephyr base (auto-detected if omitted)")
+    parser.add_argument(
+        "-p", "--module-path", type=Path, default=Path(__file__).resolve().parent,
+        help="Path to the Zephyr module (default: script location)"
+    )
+    parser.add_argument(
+        "-z", "--zephyr-path", type=Path,
+        help="Manual path to Zephyr base (auto-detected if omitted)"
+    )
     args = parser.parse_args()
 
     module_path = args.module_path.resolve()
@@ -114,28 +125,28 @@ def main():
 
     if len(boards) > 1:
         print("⚠️ Multiple boards found:")
-        for i, b in enumerate(boards):
-            print(f"  [{i+1}] {b['name']} (vendor: {b['vendor']})")
+        for i, board in enumerate(boards):
+            print(f"  [{i+1}] {board['name']} (vendor: {board['vendor']})")
         try:
             index = int(input("Select a board to install: ").strip()) - 1
-            board = boards[index]
-        except Exception:
+            selected_board = boards[index]
+        except (ValueError, IndexError):
             print("❌ Invalid selection.")
             sys.exit(1)
     else:
-        board = boards[0]
-        print(f"🔍 Automatically detected board: {board['name']} (vendor: {board['vendor']})")
+        selected_board = boards[0]
+        print(f"🔍 Automatically detected board: {selected_board['name']} (vendor: {selected_board['vendor']})")
 
-    copy_board(board, zephyr_path)
+    copy_board(selected_board, zephyr_path)
 
-    dts_file = find_dts_file(module_path, board["name"])
+    dts_file = find_dts_file(module_path, selected_board["name"])
     if dts_file:
         copy_dts(dts_file, zephyr_path)
     else:
-        print(f"⚠️ No DTS file found for board '{board['name']}'.")
+        print(f"⚠️ No DTS file found for board '{selected_board['name']}'.")
 
     print("\n✅ Installation completed. You can now build with:")
-    print(f"   west build -b {board['name']} samples/hello_world")
+    print(f"   west build -b {selected_board['name']} samples/hello_world")
 
 
 if __name__ == "__main__":

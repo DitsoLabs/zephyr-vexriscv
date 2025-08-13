@@ -13,33 +13,29 @@ def run_cmd(cmd, check=True):
     try:
         result = subprocess.run(cmd, shell=True, check=check)
         return result.returncode == 0
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error: {e}")
+    except subprocess.CalledProcessError as error:
+        print(f"❌ Error: {error}")
         return False
 
 def main():
+    """Función principal para actualizar el workspace West"""
     print("🔄 Actualizando workspace West...")
-    
     # Cambiar al directorio del workspace Zephyr si no estamos ahí
     zephyr_project = os.environ.get('ZEPHYR_BASE', '/home/fabian/zephyrproject')
     if os.path.exists(zephyr_project):
         os.chdir(zephyr_project)
         print(f"📁 Cambiando a: {zephyr_project}")
-    
     # Actualizar todos los módulos
     if not run_cmd("west update"):
         print("❌ Error actualizando módulos")
         sys.exit(1)
-    
     print("✅ Módulos actualizados")
-    
     # Verificar boards disponibles
     print("\n📋 Verificando boards disponibles...")
     if run_cmd("west boards | grep -i tang", check=False):
         print("✅ Boards Tang encontrados")
     else:
         print("⚠️  No se encontraron boards Tang")
-    
     # Intentar compilar un ejemplo simple
     print("\n🔨 Probando compilación...")
     test_cmd = "west build -p auto -b tang_nano_20k $ZEPHYR_BASE/samples/hello_world"
