@@ -122,7 +122,7 @@ def setup_soc(board, args):
     soc.constants['CONFIG_IDENTIFIER'] = identifier["sipeed_tang_nano_20k"]
     return soc
 
-def build_and_generate(soc, board_name, args):
+def build_and_generate(soc, board, board_name, args):
     """Build SoC, generate device tree, boot config, PCIe driver, and docs."""
     build_dir = os.path.join("build", board_name)
     os.makedirs(os.path.join(build_dir, "logs"), exist_ok=True)
@@ -144,10 +144,8 @@ def build_and_generate(soc, board_name, args):
     if "pcie" in soc.constants.get('CONFIG_IDENTIFIER', ''):
         generate_litepcie_software(soc, os.path.join(builder.output_dir, "driver"))
     if args.load:
-        board = board_classes[board_name]()
         board.load(filename=builder.get_bitstream_filename(mode="sram"))
     if args.flash:
-        board = board_classes[board_name]()
         board.flash(filename=builder.get_bitstream_filename(mode="flash"))
     if args.doc:
         soc.generate_doc(board_name)
@@ -185,7 +183,7 @@ def main():
     board = board_classes[board_key]()
     soc = setup_soc(board, args)
     add_optional_interfaces(soc, board, args)
-    build_and_generate(soc, board_name, args)
+    build_and_generate(soc, board, board_name, args)
 
 if __name__ == "__main__":
     main()
