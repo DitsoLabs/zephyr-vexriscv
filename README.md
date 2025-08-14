@@ -1,118 +1,245 @@
-# zephyr-vexriscv
+# Zephyr-VexRiscv
+
 [![Pylint](https://github.com/DitsoLabs/zephyr-vexriscv/actions/workflows/pylint.yml/badge.svg)](https://github.com/DitsoLabs/zephyr-vexriscv/actions/workflows/pylint.yml)
+[![License: BSD-2-Clause](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![Platform](https://img.shields.io/badge/Platform-Tang%20Nano%2020K-green)](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html)
 
-**Zephyr RTOS on VexRiscv for Tang Nano 20K (and possibly 9K in the future)**
+**Zephyr RTOS on VexRiscv SMP for Sipeed Tang Nano 20K FPGA**
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/litex-hub/linux-on-litex-vexriscv/master/doc/logo.png" alt="Zephyr on VexRiscv" width="300">
+  <img src="https://zephyrproject.org/wp-content/uploads/sites/38/2023/10/zephyr-logo-2023.png" alt="Zephyr RTOS" width="200">
+  <img src="https://github.com/SpinalHDL/VexRiscv/raw/master/assets/vexriscv_logo.png" alt="VexRiscv" width="200">
 </p>
 
 ---
 
-## ✨ Project Overview
+## 🎯 Overview
 
-`zephyr-vexriscv` is a working implementation of the [Zephyr RTOS](https://zephyrproject.org/) running on the [VexRiscv](https://github.com/SpinalHDL/VexRiscv) softcore CPU, targeting the **Sipeed Tang Nano 20K** FPGA development board. The project leverages the [LiteX SoC builder](https://github.com/enjoy-digital/litex) to generate a RISC-V based SoC with Zephyr-compatible peripherals.
+This project provides a complete implementation of [Zephyr RTOS](https://zephyrproject.org/) running on the [VexRiscv SMP](https://github.com/SpinalHDL/VexRiscv) RISC-V core, specifically targeting the **Sipeed Tang Nano 20K** FPGA development board. Using [LiteX](https://github.com/enjoy-digital/litex) as the SoC builder framework, we create a full system with Zephyr-compatible peripherals and drivers.
 
-> 🚀 This project aims to provide a minimal yet extensible RISC-V platform for real-time applications running on low-cost FPGAs.
-
----
-
-## 🛠 Features
-
-* ✅ **Zephyr RTOS** booting on VexRiscv SMP
-* ✅ **LiteX SoC** with UART, Timer, SPI-SDCard, GPIO
-* ✅ Support for **interrupts (PLIC)** and memory-mapped peripherals
-* ✅ Cross-compilation using **Zephyr SDK**
-* ✅ Flexible SoC design using Python/LiteX
-* ✅ 100% open source toolchain (Gowin, LiteX, Zephyr)
-
-> ⚙️ FPGA: Sipeed Tang Nano 20K (GW2AR-LV18QN88C8/I7)
-> 💻 CPU: VexRiscv SMP (rv32ima)
+### Key Features
+- 🔧 **Complete SoC**: VexRiscv SMP CPU with UART, GPIO, SPI, I2C, and SDRAM
+- ⚡ **Real-time OS**: Full Zephyr RTOS support with threading and interrupts
+- 🛠️ **Open Source**: 100% open-source toolchain (Gowin + LiteX + Zephyr)
+- 📱 **Low Cost**: Runs on affordable Tang Nano 20K (~$15 USD)
+- 🔄 **Extensible**: Easy to add custom peripherals and drivers
 
 ---
 
-## 🧩 Platform Roadmap
+## � Quick Start
 
-| Board         | Status      | Notes                           |
-| ------------- | ----------- | ------------------------------- |
-| Tang Nano 20K | ✅ Supported | Primary development target      |
-| Tang Nano 9K  | 🕻 Planned  | Future support under evaluation |
+### Prerequisites
+- **Python 3.8+** with pip
+- **RISC-V Toolchain** (or Zephyr SDK)
+- **Gowin EDA** (for FPGA synthesis)
+- **Git** and **west** (Zephyr build system)
+
+### Hardware Requirements
+- [Sipeed Tang Nano 20K](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html) FPGA board
+- USB-C cable for programming and power
+- MicroSD card (optional, for storage)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/DitsoLabs/zephyr-vexriscv.git
+   cd zephyr-vexriscv
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Install LiteX and dependencies
+   pip install -r requirements.txt
+   
+   # Install Zephyr SDK (if not already installed)
+   wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.5/zephyr-sdk-0.16.5_linux-x86_64.tar.xz
+   tar xf zephyr-sdk-0.16.5_linux-x86_64.tar.xz
+   cd zephyr-sdk-0.16.5
+   ./setup.sh
+   ```
+
+3. **Generate and build the SoC**
+   ```bash
+   # Generate FPGA bitstream
+   python3 bitstream_generator.py --build --load
+   ```
+
+4. **Set up Zephyr environment**
+   ```bash
+   # Initialize west workspace
+   west init -l boards/
+   west update
+   
+   # Set Zephyr environment
+   export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+   export ZEPHYR_SDK_INSTALL_DIR=~/zephyr-sdk-0.16.5
+   ```
+
+5. **Build and run Zephyr application**
+   ```bash
+   # Build hello world sample
+   west build -b tang_nano_20k samples/hello_world --pristine
+   
+   # Program the board (if using UART bootloader)
+   west flash
+   ```
 
 ---
 
-## 📦 Directory Structure
+## � Project Structure
 
-```plaintext
+```
 zephyr-vexriscv/
-├── boards/             # Zephyr board definitions (DTS, Kconfig)
-├── soc/                # Custom SoC files based on LiteX
-├── litex_project/      # Python scripts to generate FPGA bitstream
-├── zephyr/             # Sample apps (e.g. hello_world)
-└── README.md           # You're here!
+├── bitstream_generator.py      # Main SoC build script
+├── install_board.py           # Board installation utility
+├── boards/                    # Zephyr board definitions
+│   └── ditsolabs/
+│       └── tang_nano_20k/     # Tang Nano 20K board files
+├── dts/                       # Device tree includes
+│   └── riscv/litex/
+├── misc/                      # SoC and board definitions
+│   ├── boards.py             # Board class definitions
+│   ├── soc_linux.py          # SoC integration helpers
+│   └── targets/              # Target-specific implementations
+├── software/                  # Boot configuration and images
+└── build/                     # Generated files (gitignored)
 ```
 
 ---
 
-## ⚙️ Getting Started
+## 🛠️ Hardware Specifications
 
-### ✅ Requirements
+### SoC Configuration
+| Component | Specification |
+|-----------|---------------|
+| **CPU** | VexRiscv SMP (RV32IMA) |
+| **Clock** | 48 MHz (configurable) |
+| **RAM** | 64MB SDRAM + 32KB SRAM |
+| **Flash** | 16MB SPI Flash (optional) |
+| **Peripherals** | UART, GPIO, SPI, I2C, PWM |
 
-* Python 3.8+
-* [Zephyr SDK](https://docs.zephyrproject.org/latest/develop/toolchains/zephyr_sdk.html)
-* [west](https://docs.zephyrproject.org/latest/develop/west/index.html) (Zephyr build tool)
-* Gowin IDE / GOWIN toolchain
-* [LiteX](https://github.com/enjoy-digital/litex) + dependencies
+### Tang Nano 20K Features
+| Feature | Details |
+|---------|---------|
+| **FPGA** | Gowin GW2AR-LV18QN88C8/I7 |
+| **Logic Elements** | 20,736 LUT4 |
+| **Memory** | 15,552 Kbit Block RAM |
+| **I/O** | 63 user IOs |
+| **External RAM** | 64Mbit (8MB) SDRAM |
+| **Connectivity** | USB-C, HDMI, 40-pin header |
 
-### 🔧 Build SoC + Bitstream
+---
 
+## 🎮 Examples and Applications
+
+### Available Samples
+- **Hello World** - Basic console output
+- **Blinky** - LED blinking with GPIO
+- **Shell** - Interactive command shell
+- **Threads** - Multi-threading demonstration
+- **SPI/I2C** - Peripheral communication
+
+### Running Examples
 ```bash
-# Clone LiteX & related cores (optional if already done)
-git clone https://github.com/enjoy-digital/litex
-cd litex
+# LED blinky
+west build -b tang_nano_20k samples/basic/blinky
 
-# Build SoC (example)
-python3 litex_project/soc.py --build --load
-```
+# Interactive shell
+west build -b tang_nano_20k samples/subsys/shell/shell_module
 
-### 🚀 Build and Flash Zephyr App
-
-```bash
-# Set environment
-source zephyr/zephyr-env.sh
-
-# Build hello_world
-west build -b tang_nano_20k zephyr/hello_world --pristine
-
-# Flash via serial or programmer (depending on setup)
+# Multi-threading demo
+west build -b tang_nano_20k samples/kernel/threads
 ```
 
 ---
 
-## 📸 Demo
+## � Development
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/your_screenshot.png" width="500" alt="Zephyr running on Tang Nano 20K" />
-</p>
+### Adding Custom Peripherals
+1. Modify `misc/soc_linux.py` to add new peripheral
+2. Update device tree in `dts/riscv/litex/tang_nano_20k.dtsi`
+3. Add Zephyr driver in `drivers/` (if needed)
+4. Rebuild SoC and Zephyr application
+
+### Debugging
+- **Console**: UART output at 115200 baud on USB-C
+- **GDB**: Use OpenOCD with RISC-V GDB
+- **Logic Analyzer**: GPIO pins available for debugging
+
+### Performance Tuning
+- Adjust CPU frequency in `bitstream_generator.py`
+- Configure cache sizes for optimal performance
+- Enable/disable peripherals to save resources
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests, feedback, and ideas are welcome! Feel free to:
+We welcome contributions to the zephyr-vexriscv project! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-* Improve device tree bindings
-* Add support for Tang Nano 9K
-* Integrate more Zephyr drivers
+### Quick Contribution Guide
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Follow** our code style guidelines (run `pylint` before submitting)
+4. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+5. **Push** to the branch (`git push origin feature/amazing-feature`)
+6. **Open** a Pull Request
+
+### Areas for Contribution
+- 🔧 **Hardware Support**: Add new FPGA boards and peripherals
+- 🐛 **Bug Fixes**: Improve stability and performance
+- 📚 **Documentation**: Enhance guides and examples
+- 🧪 **Testing**: Add test cases and validation
+- 💡 **Features**: Implement new SoC capabilities
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### Third-Party Licenses
+- **Zephyr RTOS**: Apache License 2.0
+- **LiteX**: BSD 2-Clause License
+- **VexRiscv**: MIT License
 
 ---
 
-## ✉️ Contact
+## 🙏 Acknowledgments
 
-Made with ❤️ by [Ditso Labs](https://github.com/your-org).
-For questions, ideas or collaboration: `contact@ditsolabs.com`
+- **[Enjoy Digital](https://github.com/enjoy-digital)** for the amazing LiteX framework
+- **[SpinalHDL](https://github.com/SpinalHDL)** team for VexRiscv RISC-V core
+- **[Zephyr Project](https://www.zephyrproject.org/)** for the robust RTOS
+- **[Sipeed](https://www.sipeed.com/)** for affordable FPGA development boards
+- **RISC-V Foundation** for the open instruction set architecture
+
+---
+
+## 📞 Support & Contact
+
+### Getting Help
+- 🐛 **Issues**: [GitHub Issues](https://github.com/DitsoLabs/zephyr-vexriscv/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/DitsoLabs/zephyr-vexriscv/discussions)
+- 📧 **Email**: support@ditsolabs.com
+
+### Community
+- 🌐 **Website**: [ditsolabs.com](https://ditsolabs.com)
+- 🐦 **Twitter**: [@DitsoLabs](https://twitter.com/DitsoLabs)
+- 💼 **LinkedIn**: [DitsoLabs](https://linkedin.com/company/ditsolabs)
+
+### Useful Links
+- 📖 **Zephyr Documentation**: [docs.zephyrproject.org](https://docs.zephyrproject.org)
+- 🔗 **LiteX Documentation**: [github.com/enjoy-digital/litex](https://github.com/enjoy-digital/litex)
+- 🏗️ **VexRiscv Repository**: [github.com/SpinalHDL/VexRiscv](https://github.com/SpinalHDL/VexRiscv)
+- 📋 **Tang Nano 20K Wiki**: [wiki.sipeed.com](https://wiki.sipeed.com/hardware/en/tang/tang-nano-20k/nano-20k.html)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [DitsoLabs](https://ditsolabs.com)**
+
+⭐ **Star this repository if you find it useful!** ⭐
+
+</div>
