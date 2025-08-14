@@ -11,5 +11,5 @@ jobs:
     steps:
     - uses: Silleellie/pylint-github-action@v2.1
       with:
-        lint-path: src
+        lint-path: .
         python-version: 3.11
