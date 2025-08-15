@@ -26,7 +26,7 @@ This project provides a complete implementation of [Zephyr RTOS](https://zephyrp
 
 ---
 
-## � Quick Start
+##  Quick Start
 
 ### Prerequisites
 - **Python 3.8+** with pip
@@ -87,7 +87,7 @@ This project provides a complete implementation of [Zephyr RTOS](https://zephyrp
 
 ---
 
-## � Project Structure
+##  Project Structure
 
 ```
 zephyr-vexriscv/
@@ -154,7 +154,7 @@ west build -b tang_nano_20k samples/kernel/threads
 
 ---
 
-## � Development
+##  Development
 
 ### Adding Custom Peripherals
 1. Modify `misc/soc_linux.py` to add new peripheral
